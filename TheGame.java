@@ -103,6 +103,7 @@ public class TheGame extends GameThread{
 
 // This file is part of the course "Begin Programming: Build your first mobile game" from futurelearn.com
 // Copyright: University of Reading and Karsten Lundqvist
+// Modified by Victoria Holland - March 2014
 // It is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
