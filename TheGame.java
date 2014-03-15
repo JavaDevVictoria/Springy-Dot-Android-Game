@@ -137,9 +137,9 @@ public class TheGame extends GameThread {
 		// If it is not then move the paddle's x position in the direction of
 		// tilt	
 		if ((mPaddleX >= 0) && (mPaddleX <= mCanvasWidth)) {
-            mPaddleX = mPaddleX - xDirection;
-            if (mPaddleX < 0) mPaddleX = 0;
-            if (mPaddleX > mCanvasWidth) mPaddleX = mCanvasWidth;
+            	    mPaddleX = mPaddleX - xDirection;
+                    if (mPaddleX < 0) mPaddleX = 0;
+                    if (mPaddleX > mCanvasWidth) mPaddleX = mCanvasWidth;
 		}
 	}
 
