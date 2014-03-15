@@ -58,8 +58,8 @@ public class TheGame extends GameThread {
 	@Override
 	public void setupBeginning() {
 		// Initialise speeds
-		mBallSpeedX = -100; // was 0
-		mBallSpeedY = -100; // was 0
+		mBallSpeedX = mCanvasWidth / 2;
+		mBallSpeedY = mCanvasHeight / 2;
 
 		// Place the ball in the middle of the screen.
 		// mBall.Width() and mBall.getHeight() gives us the height and width of
@@ -135,15 +135,12 @@ public class TheGame extends GameThread {
 
 		// Check if the paddle is already touching one of the screen's edges
 		// If it is not then move the paddle's x position in the direction of
-		// tilt
-		if (mPaddleX > mPaddle.getWidth() / 2
-				&& mPaddleX < mCanvasWidth - mPaddle.getWidth() / 2) {
-			mPaddleX = mPaddleX - xDirection;
+		// tilt	
+		if ((mPaddleX >= 0) && (mPaddleX <= mCanvasWidth)) {
+            mPaddleX = mPaddleX - xDirection;
+            if (mPaddleX < 0) mPaddleX = 0;
+            if (mPaddleX > mCanvasWidth) mPaddleX = mCanvasWidth;
 		}
-
-		// Increase/decrease the speed of the ball
-		mBallSpeedX = mBallSpeedX - 1.5f * xDirection;
-		mBallSpeedY = mBallSpeedY - 1.5f * yDirection;
 	}
 
 	// This is run just before the game "scenario" is printed on the screen
