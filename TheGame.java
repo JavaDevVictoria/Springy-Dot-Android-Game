@@ -4,6 +4,7 @@ package uk.ac.reading.sis05kol.mooc;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+
 //import android.view.MotionEvent;
 
 public class TheGame extends GameThread {
@@ -25,22 +26,32 @@ public class TheGame extends GameThread {
 	private float mPaddleX = 0;
 
 	private float mMinDistanceBetweenRedBallAndBigBall = 0;
-	
+
 	// Will store the image of the smiley ball
 	private Bitmap mSmileyBall;
-	
+
 	// The X and Y position of the smiley ball on the screen (middle of ball)
 	private float mSmileyBallX = -100;
 	private float mSmileyBallY = -100;
-	
+
 	private float mMinDistanceBetweenRedBallAndSmileyBall = 0;
+
+	// Will store the image of the sad ball
+	private Bitmap mSadBall;
+
+	// The X and Y position of the sad ball on the screen (middle of ball)
+	private float mSadBallX = -100;
+	private float mSadBallY = -100;
+
+	private float mMinDistanceBetweenRedBallAndSadBall = 0;
 
 	// This is run before anything else, so we can prepare things here
 	public TheGame(GameView gameView) {
 		// House keeping
 		super(gameView);
 
-		// Prepare the ball image so we can draw it on the screen (using a canvas)
+		// Prepare the ball image so we can draw it on the screen (using a
+		// canvas)
 		mBall = BitmapFactory.decodeResource(gameView.getContext()
 				.getResources(), R.drawable.small_red_ball);
 
@@ -48,10 +59,16 @@ public class TheGame extends GameThread {
 		// canvas)
 		mPaddle = BitmapFactory.decodeResource(gameView.getContext()
 				.getResources(), R.drawable.yellow_ball);
-		
-		// Prepare the smiley ball image so we can draw it on the screen (using a canvas)
+
+		// Prepare the smiley ball image so we can draw it on the screen (using
+		// a canvas)
 		mSmileyBall = BitmapFactory.decodeResource(gameView.getContext()
 				.getResources(), R.drawable.smiley_ball);
+
+		// Prepare the sad ball image so we can draw it on the screen (using a
+		// canvas)
+		mSadBall = BitmapFactory.decodeResource(gameView.getContext()
+				.getResources(), R.drawable.sad_ball);
 	}
 
 	// This is run before a new game (also after an old game)
@@ -69,18 +86,26 @@ public class TheGame extends GameThread {
 
 		// Place the paddle at the bottom of the screen, in the middle.
 		mPaddleX = mCanvasWidth / 2;
-		
+
 		// Place the smiley ball near the top of the screen
-		mSmileyBallX = mCanvasWidth / 3;   //leftmost third of screen
-		mSmileyBallY = mCanvasHeight / 4;  //top quarter of screen
-		
+		mSmileyBallX = mCanvasWidth / 3; // leftmost third of screen
+		mSmileyBallY = mCanvasHeight / 4; // top quarter of screen
+
+		// Place the sad ball near the top of the screen
+		mSadBallX = mCanvasWidth / 1.5f; // rightmost third of screen
+		mSadBallY = mCanvasHeight / 4; // top quarter of screen
+
 		mMinDistanceBetweenRedBallAndBigBall = (mPaddle.getWidth() / 2 + mBall
-				.getWidth() / 2)
+				.getWidth() / 2) // BigBall is paddle
 				* (mPaddle.getWidth() / 2 + mBall.getWidth() / 2);
-		
+
 		mMinDistanceBetweenRedBallAndSmileyBall = (mSmileyBall.getWidth() / 2 + mBall
 				.getWidth() / 2)
 				* (mSmileyBall.getWidth() / 2 + mBall.getWidth() / 2);
+
+		mMinDistanceBetweenRedBallAndSadBall = (mSadBall.getWidth() / 2 + mBall
+				.getWidth() / 2)
+				* (mSadBall.getWidth() / 2 + mBall.getWidth() / 2);
 
 	}
 
@@ -104,9 +129,15 @@ public class TheGame extends GameThread {
 		// draw the image of the paddle using the X and Y of the paddle
 		canvas.drawBitmap(mPaddle, mPaddleX - mPaddle.getWidth() / 2,
 				mCanvasHeight - mPaddle.getHeight() / 2, null);
-		
-		canvas.drawBitmap(mSmileyBall, mSmileyBallX - mSmileyBall.getWidth() / 2,
-				mSmileyBallY - mSmileyBall.getHeight() / 2, null);
+
+		// draw the image of the smiley ball using the X and Y of the smiley
+		// ball
+		canvas.drawBitmap(mSmileyBall, mSmileyBallX - mSmileyBall.getWidth()
+				/ 2, mSmileyBallY - mSmileyBall.getHeight() / 2, null);
+
+		// draw the image of the sad ball using the X and Y of the sad ball
+		canvas.drawBitmap(mSadBall, mSadBallX - mSadBall.getWidth()
+				/ 2, mSadBallY - mSadBall.getHeight() / 2, null);
 	}
 
 	// This is run whenever the phone is touched by the user
@@ -135,11 +166,13 @@ public class TheGame extends GameThread {
 
 		// Check if the paddle is already touching one of the screen's edges
 		// If it is not then move the paddle's x position in the direction of
-		// tilt	
+		// tilt
 		if ((mPaddleX >= 0) && (mPaddleX <= mCanvasWidth)) {
-            	    mPaddleX = mPaddleX - xDirection;
-                    if (mPaddleX < 0) mPaddleX = 0;
-                    if (mPaddleX > mCanvasWidth) mPaddleX = mCanvasWidth;
+			mPaddleX = mPaddleX - xDirection;
+			if (mPaddleX < 0)
+				mPaddleX = 0;
+			if (mPaddleX > mCanvasWidth)
+				mPaddleX = mCanvasWidth;
 		}
 	}
 
@@ -168,28 +201,48 @@ public class TheGame extends GameThread {
 
 			}
 		}
-		
+
 		// Test for collisions between the moving ball and the smiley ball
 		float distanceBetweenBallAndSmileyBall;
-		
+
 		distanceBetweenBallAndSmileyBall = (mSmileyBallX - mBallX)
-				   * (mSmileyBallX - mBallX) + (mSmileyBallY - mBallY)
-					* (mSmileyBallY - mBallY);
+				* (mSmileyBallX - mBallX) + (mSmileyBallY - mBallY)
+				* (mSmileyBallY - mBallY);
 
-			if (mMinDistanceBetweenRedBallAndSmileyBall >= distanceBetweenBallAndSmileyBall) {  
-				// WE HAVE A COLLISION!
-				float velocityOfBall = (float) Math.sqrt(mBallSpeedX
-						* mBallSpeedX + mBallSpeedY * mBallSpeedY);
-				mBallSpeedX = mBallX - mSmileyBallX;
-				mBallSpeedY = mBallY - mSmileyBallY;
-				float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-						+ mBallSpeedY * mBallSpeedY);
-				mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
-				mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
+		if (mMinDistanceBetweenRedBallAndSmileyBall >= distanceBetweenBallAndSmileyBall) {
+			// WE HAVE A COLLISION!
+			float velocityOfBall = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			mBallSpeedX = mBallX - mSmileyBallX;
+			mBallSpeedY = mBallY - mSmileyBallY;
+			float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
+			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
 
-				updateScore(1);
-			}
+			updateScore(1);
+		}
 		
+		// Test for collisions between the moving ball and the sad ball
+		float distanceBetweenBallAndSadBall;
+
+		distanceBetweenBallAndSadBall = (mSadBallX - mBallX)
+						* (mSadBallX - mBallX) + (mSadBallY - mBallY)
+						* (mSadBallY - mBallY);
+
+		if (mMinDistanceBetweenRedBallAndSadBall >= distanceBetweenBallAndSadBall) {
+			// WE HAVE A COLLISION!
+			float velocityOfBall = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			mBallSpeedX = mBallX - mSadBallX;
+			mBallSpeedY = mBallY - mSadBallY;
+			float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
+			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
+
+			updateScore(-1);
+		}
 
 		// Move the ball's X and Y using the speed (pixel/sec)
 		mBallX = mBallX + secondsElapsed * mBallSpeedX;
@@ -216,7 +269,13 @@ public class TheGame extends GameThread {
 		}
 
 		if (mBallY >= mCanvasHeight - mBall.getHeight() / 2 && mBallSpeedY > 0) {
-			// Game over - game has been lost
+			// If the ball hits the bottom of the screen, it's "Game over"
+			setState(GameThread.STATE_LOSE);
+		}
+		
+		if (getScore() <= -5)  
+		{
+			// If the score drops to -5, it's "Game over"
 			setState(GameThread.STATE_LOSE);
 		}
 	}
