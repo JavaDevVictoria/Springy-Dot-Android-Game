@@ -32,7 +32,7 @@
           android:layout_height="wrap_content"
           android:layout_centerInParent="true"
           android:gravity="center_horizontal"
-          android:textColor="#ffffffff"
+          android:textColor="#ff000000"
           android:textSize="20sp"/>
      </RelativeLayout>
 </FrameLayout>
