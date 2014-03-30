@@ -121,6 +121,13 @@ public class TheGame extends GameThread {
 				.getWidth() / 2)
 				* (mSadBall.getWidth() / 2 + mBall.getWidth() / 2);
 		
+		// Make sure a new game always begins with the daffodil background
+		super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
+				.getContext().getResources(),
+				R.drawable.background);
+		
+		super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+		
 		// Play a sound when the game starts
 		mStartSound.start();
 
@@ -155,6 +162,7 @@ public class TheGame extends GameThread {
 		// draw the image of the sad ball using the X and Y of the sad ball
 		canvas.drawBitmap(mSadBall, mSadBallX - mSadBall.getWidth()
 				/ 2, mSadBallY - mSadBall.getHeight() / 2, null);
+	
 	}
 
 	// This is run whenever the phone is touched by the user
@@ -244,6 +252,22 @@ public class TheGame extends GameThread {
 			mScoreSound.start();
 			
 			updateScore(1);
+			// When score reaches 2, change the background to a space-themed background
+			if (getScore() == 2) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
+						.getContext().getResources(),
+						R.drawable.backgroundscoreplus10);
+				
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+			}
+			// When score reaches 4, change the background to a sky-themed background
+			if (getScore() == 4) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
+						.getContext().getResources(),
+						R.drawable.backgroundscoreplus20);
+				
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+			}
 		}
 		
 		// Test for collisions between the moving ball and the sad ball
@@ -265,6 +289,22 @@ public class TheGame extends GameThread {
 			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
 
 			updateScore(-1);
+			// When score drops to 3, change the background back to the space-theme
+			if (getScore() == 3) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
+						.getContext().getResources(),
+						R.drawable.backgroundscoreplus10);
+				
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+			}
+			// When score drops to 1, change the background back to the daffodil
+			if (getScore() == 1) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
+						.getContext().getResources(),
+						R.drawable.background);
+				
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+			}
 		}
 
 		// Move the ball's X and Y using the speed (pixel/sec)
