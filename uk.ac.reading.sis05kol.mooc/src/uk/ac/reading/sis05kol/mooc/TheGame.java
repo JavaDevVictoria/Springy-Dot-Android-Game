@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.media.MediaPlayer; //enables sound effects
-//import android.view.MotionEvent;
 
 public class TheGame extends GameThread {
 
@@ -44,8 +43,8 @@ public class TheGame extends GameThread {
 	private float mSadBallY = -100;
 
 	private float mMinDistanceBetweenRedBallAndSadBall = 0;
-	
-	//Create a media player object for each sound in the game
+
+	// Create a media player object for each sound in the game
 	private MediaPlayer mLoseSound;
 	private MediaPlayer mHitPaddle;
 	private MediaPlayer mScoreSound;
@@ -76,9 +75,10 @@ public class TheGame extends GameThread {
 		// canvas)
 		mSadBall = BitmapFactory.decodeResource(gameView.getContext()
 				.getResources(), R.drawable.sad_ball);
-		
+
 		// Load sound clip for each media player
-		mLoseSound = MediaPlayer.create(gameView.getContext(), R.raw.sadtrombone);
+		mLoseSound = MediaPlayer.create(gameView.getContext(),
+				R.raw.sadtrombone);
 		mHitPaddle = MediaPlayer.create(gameView.getContext(), R.raw.click);
 		mScoreSound = MediaPlayer.create(gameView.getContext(), R.raw.score);
 		mStartSound = MediaPlayer.create(gameView.getContext(), R.raw.start);
@@ -120,14 +120,13 @@ public class TheGame extends GameThread {
 		mMinDistanceBetweenRedBallAndSadBall = (mSadBall.getWidth() / 2 + mBall
 				.getWidth() / 2)
 				* (mSadBall.getWidth() / 2 + mBall.getWidth() / 2);
-		
+
 		// Make sure a new game always begins with the daffodil background
 		super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
-				.getContext().getResources(),
-				R.drawable.background);
-		
+				.getContext().getResources(), R.drawable.background);
+
 		super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
-		
+
 		// Play a sound when the game starts
 		mStartSound.start();
 
@@ -160,9 +159,9 @@ public class TheGame extends GameThread {
 				/ 2, mSmileyBallY - mSmileyBall.getHeight() / 2, null);
 
 		// draw the image of the sad ball using the X and Y of the sad ball
-		canvas.drawBitmap(mSadBall, mSadBallX - mSadBall.getWidth()
-				/ 2, mSadBallY - mSadBall.getHeight() / 2, null);
-	
+		canvas.drawBitmap(mSadBall, mSadBallX - mSadBall.getWidth() / 2,
+				mSadBallY - mSadBall.getHeight() / 2, null);
+
 	}
 
 	// This is run whenever the phone is touched by the user
@@ -205,107 +204,69 @@ public class TheGame extends GameThread {
 	@Override
 	protected void updateGame(float secondsElapsed) {
 
-		// Test for collisions between the moving ball and the paddle
-		float distanceBetweenBallAndPaddle;
-
+		// Test for collisions between the moving ball and the paddle BLOCK 1
+		// STARTS
 		if (mBallSpeedY > 0) { // if the ball is moving down the screen
-			distanceBetweenBallAndPaddle = (mPaddleX - mBallX)
-					* (mPaddleX - mBallX) + (mCanvasHeight - mBallY)
-					* (mCanvasHeight - mBallY);
-
-			if (mMinDistanceBetweenRedBallAndBigBall >= distanceBetweenBallAndPaddle) {
-				// WE HAVE A COLLISION!
-				float velocityOfBall = (float) Math.sqrt(mBallSpeedX
-						* mBallSpeedX + mBallSpeedY * mBallSpeedY);
-				mBallSpeedX = mBallX - mPaddleX;
-				mBallSpeedY = mBallY - mCanvasHeight;
-				float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-						+ mBallSpeedY * mBallSpeedY);
-				mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
-				mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
-				
+			if (updateBallCollision(mPaddleX, mCanvasHeight)) {
 				// Play sound when paddle hit
 				mHitPaddle.start();
-
 			}
-		}
+		} // BLOCK 1 ENDS
 
 		// Test for collisions between the moving ball and the smiley ball
-		float distanceBetweenBallAndSmileyBall;
-
-		distanceBetweenBallAndSmileyBall = (mSmileyBallX - mBallX)
-				* (mSmileyBallX - mBallX) + (mSmileyBallY - mBallY)
-				* (mSmileyBallY - mBallY);
-
-		if (mMinDistanceBetweenRedBallAndSmileyBall >= distanceBetweenBallAndSmileyBall) {
-			// WE HAVE A COLLISION!
-			float velocityOfBall = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-					+ mBallSpeedY * mBallSpeedY);
-			mBallSpeedX = mBallX - mSmileyBallX;
-			mBallSpeedY = mBallY - mSmileyBallY;
-			float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-					+ mBallSpeedY * mBallSpeedY);
-			mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
-			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
-
+		if (updateBallCollision(mSmileyBallX, mSmileyBallY)) {
 			// Play sound when ball hits target
 			mScoreSound.start();
-			
+			// Increase the score by 1
 			updateScore(1);
-			// When score reaches 2, change the background to a space-themed background
-			if (getScore() == 2) {
-				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
-						.getContext().getResources(),
+			// Call the method to reposition the paddle in the middle of the
+			// screen after scoring
+			repositionPaddleAfterScoring();
+			// When score reaches 5, change the background to a space-themed
+			// background
+			if (getScore() == 5) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
 						R.drawable.backgroundscoreplus10);
-				
+
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
 			}
-			// When score reaches 4, change the background to a sky-themed background
-			if (getScore() == 4) {
-				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
-						.getContext().getResources(),
+			// When score reaches 10, change the background to a sky-themed
+			// background
+			if (getScore() == 10) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
 						R.drawable.backgroundscoreplus20);
-				
+
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
 			}
 		}
-		
+
 		// Test for collisions between the moving ball and the sad ball
-		float distanceBetweenBallAndSadBall;
-
-		distanceBetweenBallAndSadBall = (mSadBallX - mBallX)
-						* (mSadBallX - mBallX) + (mSadBallY - mBallY)
-						* (mSadBallY - mBallY);
-
-		if (mMinDistanceBetweenRedBallAndSadBall >= distanceBetweenBallAndSadBall) {
-			// WE HAVE A COLLISION!
-			float velocityOfBall = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-					+ mBallSpeedY * mBallSpeedY);
-			mBallSpeedX = mBallX - mSadBallX;
-			mBallSpeedY = mBallY - mSadBallY;
-			float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
-					+ mBallSpeedY * mBallSpeedY);
-			mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
-			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
-
+		// BLOCK 2 BEGINS
+		if (updateBallCollision(mSadBallX, mSadBallY)) {
 			updateScore(-1);
-			// When score drops to 3, change the background back to the space-theme
-			if (getScore() == 3) {
-				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
-						.getContext().getResources(),
+			// Call the method to reposition the paddle in the middle of the
+			// screen after scoring
+			repositionPaddleAfterScoring();
+			// When score drops to 9, change the background back to the
+			// space-theme
+			if (getScore() == 9) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
 						R.drawable.backgroundscoreplus10);
-				
+
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
 			}
-			// When score drops to 1, change the background back to the daffodil
-			if (getScore() == 1) {
-				super.mBackgroundImage = BitmapFactory.decodeResource(super.mGameView
-						.getContext().getResources(),
+			// When score drops to 4, change the background back to the daffodil
+			if (getScore() == 4) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
 						R.drawable.background);
-				
+
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
 			}
-		}
+		}// BLOCK 2 ENDS
 
 		// Move the ball's X and Y using the speed (pixel/sec)
 		mBallX = mBallX + secondsElapsed * mBallSpeedX;
@@ -320,7 +281,7 @@ public class TheGame extends GameThread {
 		if ((mBallX <= mBall.getWidth() / 2 && mBallSpeedX < 0)
 				|| (mBallX >= mCanvasWidth - mBall.getWidth() / 2 && mBallSpeedX > 0)) {
 			mBallSpeedX = -mBallSpeedX;
-			
+
 			// Play sound when ball hits left or right side of screen
 			mBounceSound.start();
 		}
@@ -332,29 +293,72 @@ public class TheGame extends GameThread {
 		// direction.
 		if ((mBallY <= mBall.getHeight() / 2 && mBallSpeedY < 0)) {
 			mBallSpeedY = -mBallSpeedY;
-			
+
 			// Play sound when ball hits top of screen
 			mBounceSound.start();
 		}
 
 		if (mBallY >= mCanvasHeight - mBall.getHeight() / 2 && mBallSpeedY > 0) {
 			// If the ball hits the bottom of the screen, it's "Game over"
-			
+
 			// Play sound when paddle misses ball
 			mLoseSound.start();
-						
+
 			setState(GameThread.STATE_LOSE);
 		}
-		
-		if (getScore() <= -5)  
-		{
-			// If the score drops to -5, it's "Game over"
-			
-			// Play sound when score drops to -5
+
+		/* if (getScore() < 0) {
+			// If the score drops to below 0, it's "Game over"
+
+			// Play sound when score drops to below 0
 			mLoseSound.start();
-			
+
 			setState(GameThread.STATE_LOSE);
+		} */
+	}
+
+	// collision control between mBall and another big ball
+	private boolean updateBallCollision(float x, float y) {
+		/*
+		 * Get actual distance (without square root - remember?) between the
+		 * mBall and the ball being checked
+		 */
+		float distanceBetweenBallAndPaddle = (x - mBallX) * (x - mBallX)
+				+ (y - mBallY) * (y - mBallY);
+		// Check if the actual distance is lower than the allowed => collision
+		if (mMinDistanceBetweenRedBallAndBigBall >= distanceBetweenBallAndPaddle) {
+			/*
+			 * Get the present velocity (this should also be the velocity going
+			 * away after the collision)
+			 */
+			float velocityOfBall = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			// Change the direction of the ball
+			mBallSpeedX = mBallX - x;
+			mBallSpeedY = mBallY - y;
+			// Get the velocity after the collision
+			float newVelocity = (float) Math.sqrt(mBallSpeedX * mBallSpeedX
+					+ mBallSpeedY * mBallSpeedY);
+			/*
+			 * using the fraction between the original velocity and present
+			 * velocity to calculate the needed
+			 */
+			/*
+			 * speeds in X and Y to get the original velocity but with the new
+			 * angle
+			 */
+			mBallSpeedX = mBallSpeedX * velocityOfBall / newVelocity;
+			mBallSpeedY = mBallSpeedY * velocityOfBall / newVelocity;
+			// A collision happened so we return true here
+			return true;
 		}
+		// No collision happened so we return false here
+		return false;
+	}
+
+	// Reposition the paddle in the middle of the screen every time the user scores
+	private void repositionPaddleAfterScoring() {
+		mPaddleX = mCanvasWidth / 2;
 	}
 }
 
@@ -366,6 +370,7 @@ public class TheGame extends GameThread {
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+// Sound effects are from the SoundBible.com website
 //
 // It is is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of

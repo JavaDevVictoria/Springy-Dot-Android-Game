@@ -15,88 +15,87 @@ import android.view.SurfaceHolder;
 import android.view.View;
 
 public abstract class GameThread extends Thread {
-	//Different mMode states
+	// Different mMode states
 	public static final int STATE_LOSE = 1;
 	public static final int STATE_PAUSE = 2;
 	public static final int STATE_READY = 3;
 	public static final int STATE_RUNNING = 4;
 	public static final int STATE_WIN = 5;
 
-	//Control variable for the mode of the game (e.g. STATE_WIN)
+	// Control variable for the mode of the game (e.g. STATE_WIN)
 	protected int mMode = 1;
 
-	//Control of the actual running inside run()
+	// Control of the actual running inside run()
 	private boolean mRun = false;
-		
-	//The surface this thread (and only this thread) writes upon
+
+	// The surface this thread (and only this thread) writes upon
 	private SurfaceHolder mSurfaceHolder;
-	
-	//the message handler to the View/Activity thread
+
+	// the message handler to the View/Activity thread
 	private Handler mHandler;
-	
-	//Android Context - this stores almost all we need to know
+
+	// Android Context - this stores almost all we need to know
 	private Context mContext;
-	
-	//The view
+
+	// The view
 	public GameView mGameView;
 
-	//We might want to extend this call - therefore protected
+	// We might want to extend this call - therefore protected
 	protected int mCanvasWidth = 1;
 	protected int mCanvasHeight = 1;
 
-	//Last time we updated the game physics
+	// Last time we updated the game physics
 	protected long mLastTime = 0;
- 
+
 	protected Bitmap mBackgroundImage;
-	
+
 	protected long score = 0;
-	
+
 	private long now;
 	private float elapsed;
-	
 
-	public GameThread(GameView gameView) {		
+	public GameThread(GameView gameView) {
 		mGameView = gameView;
-		
+
 		mSurfaceHolder = gameView.getHolder();
 		mHandler = gameView.getmHandler();
 		mContext = gameView.getContext();
-		
-		mBackgroundImage = BitmapFactory.decodeResource
-							(gameView.getContext().getResources(), 
-							R.drawable.background);
+
+		mBackgroundImage = BitmapFactory.decodeResource(gameView.getContext()
+				.getResources(), R.drawable.background);
+
 	}
-	
+
 	/*
-	 * Called when app is destroyed, so not really that important here
-	 * But if (later) the game involves more thread, we might need to stop a thread, and then we would need this
-	 * Dare I say memory leak...
+	 * Called when app is destroyed, so not really that important here But if
+	 * (later) the game involves more thread, we might need to stop a thread,
+	 * and then we would need this Dare I say memory leak...
 	 */
-	public void cleanup() {		
+	public void cleanup() {
 		this.mContext = null;
 		this.mGameView = null;
 		this.mHandler = null;
 		this.mSurfaceHolder = null;
 	}
-	
-	//Pre-begin a game
+
+	// Pre-begin a game
 	abstract public void setupBeginning();
-	
-	//Starting up the game
+
+	// Starting up the game
 	public void doStart() {
-		synchronized(mSurfaceHolder) {
-			
+		synchronized (mSurfaceHolder) {
+
 			setupBeginning();
-			
+
 			mLastTime = System.currentTimeMillis() + 100;
 
 			setState(STATE_RUNNING);
-			
+
 			setScore(0);
 		}
 	}
-	
-	//The thread start
+
+	// The thread start
 	@Override
 	public void run() {
 		Canvas canvasRun;
@@ -110,16 +109,15 @@ public abstract class GameThread extends Thread {
 					}
 					doDraw(canvasRun);
 				}
-			} 
-			finally {
+			} finally {
 				if (canvasRun != null) {
-					if(mSurfaceHolder != null)
+					if (mSurfaceHolder != null)
 						mSurfaceHolder.unlockCanvasAndPost(canvasRun);
 				}
 			}
 		}
 	}
-	
+
 	/*
 	 * Surfaces and drawing
 	 */
@@ -129,18 +127,20 @@ public abstract class GameThread extends Thread {
 			mCanvasHeight = height;
 
 			// don't forget to resize the background image
-			mBackgroundImage = Bitmap.createScaledBitmap(mBackgroundImage, width, height, true);
+			mBackgroundImage = Bitmap.createScaledBitmap(mBackgroundImage,
+					width, height, true);
 		}
 	}
 
-
 	protected void doDraw(Canvas canvas) {
-		
-		if(canvas == null) return;
 
-		if(mBackgroundImage != null) canvas.drawBitmap(mBackgroundImage, 0, 0, null);
+		if (canvas == null)
+			return;
+
+		if (mBackgroundImage != null)
+			canvas.drawBitmap(mBackgroundImage, 0, 0, null);
 	}
-	
+
 	private void updatePhysics() {
 		now = System.currentTimeMillis();
 		elapsed = (now - mLastTime) / 1000.0f;
@@ -149,70 +149,74 @@ public abstract class GameThread extends Thread {
 
 		mLastTime = now;
 	}
-	
+
 	abstract protected void updateGame(float secondsElapsed);
-	
+
 	/*
 	 * Control functions
 	 */
-	
-	//Finger touches the screen
+
+	// Finger touches the screen
 	public boolean onTouch(MotionEvent e) {
-		if(e.getAction() != MotionEvent.ACTION_DOWN) return false;
-		
-		if(mMode == STATE_READY || mMode == STATE_LOSE || mMode == STATE_WIN) {
+		if (e.getAction() != MotionEvent.ACTION_DOWN)
+			return false;
+
+		if (mMode == STATE_READY || mMode == STATE_LOSE || mMode == STATE_WIN) {
 			doStart();
 			return true;
 		}
-		
-		if(mMode == STATE_PAUSE) {
+
+		if (mMode == STATE_PAUSE) {
 			unpause();
 			return true;
 		}
-		
+
 		synchronized (mSurfaceHolder) {
-				this.actionOnTouch(e.getRawX(), e.getRawY());
+			this.actionOnTouch(e.getRawX(), e.getRawY());
 		}
-		 
+
 		return false;
 	}
-	
+
 	protected void actionOnTouch(float x, float y) {
-		//Override to do something
+		// Override to do something
 	}
 
-	//The Accellerometer has changed
+	// The Accellerometer has changed
 	@SuppressWarnings("deprecation")
 	public void onSensorChanged(SensorEvent event) {
 		synchronized (mSurfaceHolder) {
 			if (event.sensor.getType() == Sensor.TYPE_ORIENTATION) {
-				actionWhenPhoneMoved(event.values[2],event.values[1], event.values[0]);
+				actionWhenPhoneMoved(event.values[2], event.values[1],
+						event.values[0]);
 			}
 		}
 	}
-	
-	protected void actionWhenPhoneMoved(float xDirection, float yDirection, float zDirection) {
-		//Override to do something
+
+	protected void actionWhenPhoneMoved(float xDirection, float yDirection,
+			float zDirection) {
+		// Override to do something
 	}
-	
+
 	/*
 	 * Game states
 	 */
 	public void pause() {
 		synchronized (mSurfaceHolder) {
-			if (mMode == STATE_RUNNING) setState(STATE_PAUSE);
+			if (mMode == STATE_RUNNING)
+				setState(STATE_PAUSE);
 		}
 	}
-	
+
 	public void unpause() {
 		// Move the real time clock up to now
 		synchronized (mSurfaceHolder) {
 			mLastTime = System.currentTimeMillis();
 		}
 		setState(STATE_RUNNING);
-	}	
+	}
 
-	//Send messages to View/Activity thread
+	// Send messages to View/Activity thread
 	public void setState(int mode) {
 		synchronized (mSurfaceHolder) {
 			setState(mode, null);
@@ -228,28 +232,24 @@ public abstract class GameThread extends Thread {
 				Bundle b = new Bundle();
 				b.putString("text", "");
 				b.putInt("viz", View.INVISIBLE);
-				b.putBoolean("showAd", false);	
+				b.putBoolean("showAd", false);
 				msg.setData(b);
 				mHandler.sendMessage(msg);
-			} 
-			else {				
+			} else {
 				Message msg = mHandler.obtainMessage();
 				Bundle b = new Bundle();
-				
+
 				Resources res = mContext.getResources();
 				CharSequence str = "";
 				if (mMode == STATE_READY)
 					str = res.getText(R.string.mode_ready);
-				else 
-					if (mMode == STATE_PAUSE)
-						str = res.getText(R.string.mode_pause);
-					else 
-						if (mMode == STATE_LOSE)
-							str = res.getText(R.string.mode_lose);
-						else 
-							if (mMode == STATE_WIN) {
-								str = res.getText(R.string.mode_win);
-							}
+				else if (mMode == STATE_PAUSE)
+					str = res.getText(R.string.mode_pause);
+				else if (mMode == STATE_LOSE)
+					str = res.getText(R.string.mode_lose);
+				else if (mMode == STATE_WIN) {
+					str = res.getText(R.string.mode_win);
+				}
 
 				if (message != null) {
 					str = message + "\n" + str;
@@ -263,22 +263,22 @@ public abstract class GameThread extends Thread {
 			}
 		}
 	}
-	
+
 	/*
 	 * Getter and setter
-	 */	
+	 */
 	public void setSurfaceHolder(SurfaceHolder h) {
 		mSurfaceHolder = h;
 	}
-	
+
 	public boolean isRunning() {
 		return mRun;
 	}
-	
+
 	public void setRunning(boolean running) {
 		mRun = running;
 	}
-	
+
 	public int getMode() {
 		return mMode;
 	}
@@ -286,15 +286,15 @@ public abstract class GameThread extends Thread {
 	public void setMode(int mMode) {
 		this.mMode = mMode;
 	}
-	
-	
+
 	/* ALL ABOUT SCORES */
-	
-	//Send a score to the View to view 
-	//Would it be better to do this inside this thread writing it manually on the screen?
+
+	// Send a score to the View to view
+	// Would it be better to do this inside this thread writing it manually on
+	// the screen?
 	public void setScore(long score) {
 		this.score = score;
-		
+
 		synchronized (mSurfaceHolder) {
 			Message msg = mHandler.obtainMessage();
 			Bundle b = new Bundle();
@@ -308,19 +308,19 @@ public abstract class GameThread extends Thread {
 	public float getScore() {
 		return score;
 	}
-	
+
 	public void updateScore(long score) {
 		this.setScore(this.score + score);
 	}
-	
-	
+
 	protected CharSequence getScoreString() {
 		return Long.toString(Math.round(this.score));
 	}
-	
+
 }
 
-// This file is part of the course "Begin Programming: Build your first mobile game" from futurelearn.com
+// This file is part of the course
+// "Begin Programming: Build your first mobile game" from futurelearn.com
 // Copyright: University of Reading and Karsten Lundqvist
 // It is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -329,9 +329,9 @@ public abstract class GameThread extends Thread {
 //
 // It is is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
-// 
+//
 // You should have received a copy of the GNU General Public License
-// along with it.  If not, see <http://www.gnu.org/licenses/>.
+// along with it. If not, see <http://www.gnu.org/licenses/>.
