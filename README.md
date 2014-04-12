@@ -6,7 +6,7 @@ Between late February and early April 2014 I was enrolled in an online course at
 How to install the game on your device
 =======================================
 
-This game will soon be made available on the Google Play Store, but for now, you can sideload the APK file onto your Android device.  To do this, you'll need to go to Settings -> Security and check the "Unknown Sources" checkbox (if it's not already checked).  This will enable you to install apps from sources other than the Google Play Store.  Then on your PC, visit <a href="https://github.com/JavaDevVictoria/Springy-Dot-Android-Game/blob/master/SpringyDot.apk?raw=true">this link</a> to download the APK file.  You can then email it to your Android device or transfer it via USB.  On your device, open the file, and if the "Complete action using..." dialog box appears, select "Package installer" and follow the on-screen instructions.  Once installed, you'll be ready to play the game. 
+This game is now available on the Google Play Store - <a href="https://play.google.com/store/apps/details?id=com.webalicioustech.moocgame">here is the direct link</a>.
 
 Playing the game
 =================
