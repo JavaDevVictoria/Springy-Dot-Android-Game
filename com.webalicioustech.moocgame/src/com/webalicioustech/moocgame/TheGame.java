@@ -3,13 +3,23 @@ package com.webalicioustech.moocgame;
 //Other parts of the android libraries that we use
 import com.webalicioustech.moocgame.R;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.media.MediaPlayer; //enables sound effects
 
 public class TheGame extends GameThread {
-
+	
+	// Initialise the level number
+	private int levelNo = 1;
+	
+	// Initialise the number of lives
+	//private int noOfLives = 3;
+	
 	// Will store the image of a ball
 	private Bitmap mBall;
 
@@ -91,8 +101,11 @@ public class TheGame extends GameThread {
 	@Override
 	public void setupBeginning() {
 		// Initialise speeds
-		mBallSpeedX = mCanvasWidth / 2;
-		mBallSpeedY = mCanvasHeight / 2;
+		//mBallSpeedX = mCanvasWidth / 2;
+		//mBallSpeedY = mCanvasHeight / 2;
+		
+		mBallSpeedX = mCanvasWidth / 3; 
+		mBallSpeedY = mCanvasHeight / 3;
 
 		// Place the ball in the middle of the screen.
 		// mBall.Width() and mBall.getHeight() gives us the height and width of
@@ -131,6 +144,13 @@ public class TheGame extends GameThread {
 
 		// Play a sound when the game starts
 		mStartSound.start();
+		
+		SharedPreferences sharedPref = mContext.getSharedPreferences(SHARED_PREF,
+		         Context.MODE_PRIVATE);
+		mHighScore = sharedPref.getInt(HIGH_SCORE, 0);
+		
+		// Make sure we always start with 3 lives
+		//noOfLives = 3;
 
 	}
 
@@ -163,6 +183,22 @@ public class TheGame extends GameThread {
 		// draw the image of the sad ball using the X and Y of the sad ball
 		canvas.drawBitmap(mSadBall, mSadBallX - mSadBall.getWidth() / 2,
 				mSadBallY - mSadBall.getHeight() / 2, null);
+		
+		// draw the level number in red at top left of screen
+		String levelNoText = String.valueOf(levelNo);
+		levelNoText = "Level " + levelNoText;
+		Paint levelNoTextPaint = new Paint();
+		levelNoTextPaint.setColor(Color.RED);
+		levelNoTextPaint.setTextSize(36);
+		canvas.drawText(levelNoText, 5, 40, levelNoTextPaint); 
+		
+		// draw the number of lives at top of the screen
+		/* String noOfLivesText = String.valueOf(noOfLives);
+		noOfLivesText = "Lives: " + noOfLivesText;
+		Paint noOfLivesTextPaint = new Paint();
+		noOfLivesTextPaint.setColor(Color.YELLOW);
+		noOfLivesTextPaint.setTextSize(36);
+		canvas.drawText(noOfLivesText, 40, 40, noOfLivesTextPaint); */
 
 	}
 
@@ -206,14 +242,13 @@ public class TheGame extends GameThread {
 	@Override
 	protected void updateGame(float secondsElapsed) {
 
-		// Test for collisions between the moving ball and the paddle BLOCK 1
-		// STARTS
+		// Test for collisions between the moving ball and the paddle
 		if (mBallSpeedY > 0) { // if the ball is moving down the screen
 			if (updateBallCollision(mPaddleX, mCanvasHeight)) {
 				// Play sound when paddle hit
 				mHitPaddle.start();
 			}
-		} // BLOCK 1 ENDS
+		}
 
 		// Test for collisions between the moving ball and the smiley ball
 		if (updateBallCollision(mSmileyBallX, mSmileyBallY)) {
@@ -224,6 +259,15 @@ public class TheGame extends GameThread {
 			// Call the method to reposition the paddle in the middle of the
 			// screen after scoring
 			repositionPaddleAfterScoring();
+			// Call the method to swap the smiley ball and the sad ball after
+			// scoring
+			// changeFacePositions();
+			if (mSmileyBallX >= 0 - mSmileyBall.getWidth() / 2) {
+				moveSmileyBallToLeft();
+			}
+			if (mSmileyBallY >= 0 - mSmileyBall.getHeight() / 2) {
+				moveSmileyBallToTop();
+			}
 			// When score reaches 5, change the background to a space-themed
 			// background
 			if (getScore() == 5) {
@@ -232,6 +276,11 @@ public class TheGame extends GameThread {
 						R.drawable.backgroundscoreplus10);
 
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Increase the speed of the ball
+				increaseBallSpeed();
+				
+				levelNo = 2;
 			}
 			// When score reaches 10, change the background to a sky-themed
 			// background
@@ -241,16 +290,26 @@ public class TheGame extends GameThread {
 						R.drawable.backgroundscoreplus20);
 
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Increase the speed of the ball
+				increaseBallSpeed();
+				
+				levelNo = 3;
 			}
 		}
 
 		// Test for collisions between the moving ball and the sad ball
-		// BLOCK 2 BEGINS
 		if (updateBallCollision(mSadBallX, mSadBallY)) {
 			updateScore(-1);
 			// Call the method to reposition the paddle in the middle of the
 			// screen after scoring
 			repositionPaddleAfterScoring();
+			if (mSadBallX <= mCanvasWidth - mSadBall.getWidth() / 2) {
+				moveSadBallToRight();
+			}
+			if (mSadBallY <= mCanvasHeight - mSadBall.getHeight() / 2) {
+				moveSadBallToBottom();
+			}
 			// When score drops to 9, change the background back to the
 			// space-theme
 			if (getScore() == 9) {
@@ -259,6 +318,11 @@ public class TheGame extends GameThread {
 						R.drawable.backgroundscoreplus10);
 
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Decrease the speed of the ball
+				decreaseBallSpeed();
+				
+				levelNo = 2;
 			}
 			// When score drops to 4, change the background back to the daffodil
 			if (getScore() == 4) {
@@ -267,8 +331,13 @@ public class TheGame extends GameThread {
 						R.drawable.background);
 
 				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Decrease the speed of the ball
+				decreaseBallSpeed();
+				
+				levelNo = 1;
 			}
-		}// BLOCK 2 ENDS
+		}
 
 		// Move the ball's X and Y using the speed (pixel/sec)
 		mBallX = mBallX + secondsElapsed * mBallSpeedX;
@@ -301,22 +370,17 @@ public class TheGame extends GameThread {
 		}
 
 		if (mBallY >= mCanvasHeight - mBall.getHeight() / 2 && mBallSpeedY > 0) {
-			// If the ball hits the bottom of the screen, it's "Game over"
-
-			// Play sound when paddle misses ball
-			mLoseSound.start();
-
-			setState(GameThread.STATE_LOSE);
+			
+			//noOfLives = noOfLives - 1; //Lose a life
+			//return;
+			// If the ball hits the bottom of the screen and number of lives is zero, it's "Game over"
+			//if (noOfLives <= 0)
+			//{
+				// Play sound when game is lost
+				mLoseSound.start();
+				setState(GameThread.STATE_LOSE);
+			//}
 		}
-
-		/* if (getScore() < 0) {
-			// If the score drops to below 0, it's "Game over"
-
-			// Play sound when score drops to below 0
-			mLoseSound.start();
-
-			setState(GameThread.STATE_LOSE);
-		} */
 	}
 
 	// collision control between mBall and another big ball
@@ -358,10 +422,48 @@ public class TheGame extends GameThread {
 		return false;
 	}
 
-	// Reposition the paddle in the middle of the screen every time the user scores
+	// Reposition the paddle in the middle of the screen every time the user
+	// scores
 	private void repositionPaddleAfterScoring() {
 		mPaddleX = mCanvasWidth / 2;
 	}
+
+	protected void changeFacePositions() {
+		// Swaps the Smiley Ball with the Sad Ball
+		float tempX = mSmileyBallX;
+		float tempY = mSmileyBallY;
+		mSmileyBallX = mSadBallX;
+		mSmileyBallY = mSadBallY;
+		mSadBallX = tempX;
+		mSadBallY = tempY;
+	}
+
+	private void moveSadBallToRight() {
+		mSadBallX = mSadBallX + 5;// move mSadBallX towards the right
+	}
+
+	private void moveSadBallToBottom() {
+		mSadBallY = mSadBallY + 5;// move mSadBallY towards the bottom
+	}
+
+	private void moveSmileyBallToLeft() {
+		mSmileyBallX = mSmileyBallX - 5;// move mSmileyBallX towards the left
+	}
+
+	private void moveSmileyBallToTop() {
+		mSmileyBallY = mSmileyBallY - 5;// move mSmileyBallX towards the top
+	}
+	
+	private void increaseBallSpeed() {
+		mBallSpeedX = mBallSpeedX * (float)1.10;
+        mBallSpeedY = mBallSpeedY * (float)1.10;
+	}
+	
+	private void decreaseBallSpeed() {
+		mBallSpeedX = mBallSpeedX * (float)0.90;
+        mBallSpeedY = mBallSpeedY * (float)0.90;
+	}
+	
 }
 
 // This file is part of the course

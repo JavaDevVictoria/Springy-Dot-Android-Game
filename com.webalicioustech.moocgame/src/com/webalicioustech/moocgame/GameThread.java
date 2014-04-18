@@ -3,6 +3,7 @@ package com.webalicioustech.moocgame;
 import com.webalicioustech.moocgame.R;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -37,7 +38,7 @@ public abstract class GameThread extends Thread {
 	private Handler mHandler;
 
 	// Android Context - this stores almost all we need to know
-	private Context mContext;
+	protected Context mContext;
 
 	// The view
 	public GameView mGameView;
@@ -52,6 +53,10 @@ public abstract class GameThread extends Thread {
 	protected Bitmap mBackgroundImage;
 
 	protected long score = 0;
+	
+	protected long mHighScore = 0;
+	protected static final String HIGH_SCORE = "high_score";
+	protected static final String SHARED_PREF = "com.webalicioustech.moocgame.pref";
 
 	private long now;
 	private float elapsed;
@@ -305,6 +310,15 @@ public abstract class GameThread extends Thread {
 			msg.setData(b);
 			mHandler.sendMessage(msg);
 		}
+		
+		if (this.score > mHighScore) {
+		    mHighScore = this.score;
+		    SharedPreferences sharedPref = mContext.getSharedPreferences(SHARED_PREF,
+		                                   Context.MODE_PRIVATE);
+		    SharedPreferences.Editor editor = sharedPref.edit();
+		    editor.putInt(HIGH_SCORE, (int) mHighScore);
+		    editor.commit();
+		}
 	}
 
 	public float getScore() {
@@ -316,7 +330,8 @@ public abstract class GameThread extends Thread {
 	}
 
 	protected CharSequence getScoreString() {
-		return Long.toString(Math.round(this.score));
+		//return Long.toString(Math.round(this.score));
+		return this.score + " [High Score: " + mHighScore + "]";
 	}
 
 }
