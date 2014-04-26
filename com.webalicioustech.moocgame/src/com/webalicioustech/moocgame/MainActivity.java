@@ -4,8 +4,10 @@ import com.webalicioustech.moocgame.R;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.Window;
@@ -18,9 +20,12 @@ public class MainActivity extends Activity {
     private static final int MENU_RESUME = 1;
     private static final int MENU_START = 2;
     private static final int MENU_STOP = 3;
+    private static final int MENU_TOGGLESOUND = 4;
 
     private GameThread mGameThread;
     private GameView mGameView;	
+    
+    public boolean soundMode;
 	
 	/** Called when the activity is first created. */
     @Override
@@ -84,6 +89,7 @@ public class MainActivity extends Activity {
         menu.add(0, MENU_START, 0, R.string.menu_start);
         menu.add(0, MENU_STOP, 0, R.string.menu_stop);
         menu.add(0, MENU_RESUME, 0, R.string.menu_resume);
+       // menu.add(0, MENU_TOGGLESOUND, 0, R.string.menu_togglesound);
 
         return true;
     }
@@ -99,6 +105,10 @@ public class MainActivity extends Activity {
                 return true;
             case MENU_RESUME:
                 mGameThread.unpause();
+                return true;
+            case MENU_TOGGLESOUND:
+            	SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+                soundMode = prefs.getBoolean("soundmode", false);
                 return true;
         }
 

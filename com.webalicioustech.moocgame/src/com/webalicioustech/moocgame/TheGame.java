@@ -18,7 +18,7 @@ public class TheGame extends GameThread {
 	private int levelNo = 1;
 	
 	// Initialise the number of lives
-	//private int noOfLives = 3;
+	private int noOfLives = 3;
 	
 	// Will store the image of a ball
 	private Bitmap mBall;
@@ -101,9 +101,6 @@ public class TheGame extends GameThread {
 	@Override
 	public void setupBeginning() {
 		// Initialise speeds
-		//mBallSpeedX = mCanvasWidth / 2;
-		//mBallSpeedY = mCanvasHeight / 2;
-		
 		mBallSpeedX = mCanvasWidth / 3; 
 		mBallSpeedY = mCanvasHeight / 3;
 
@@ -150,7 +147,10 @@ public class TheGame extends GameThread {
 		mHighScore = sharedPref.getInt(HIGH_SCORE, 0);
 		
 		// Make sure we always start with 3 lives
-		//noOfLives = 3;
+		noOfLives = 3;
+		
+		// Bugfix in v1.2 - make sure we always start on Level 1
+		levelNo = 1;
 
 	}
 
@@ -193,12 +193,12 @@ public class TheGame extends GameThread {
 		canvas.drawText(levelNoText, 5, 40, levelNoTextPaint); 
 		
 		// draw the number of lives at top of the screen
-		/* String noOfLivesText = String.valueOf(noOfLives);
+		String noOfLivesText = String.valueOf(noOfLives);
 		noOfLivesText = "Lives: " + noOfLivesText;
 		Paint noOfLivesTextPaint = new Paint();
-		noOfLivesTextPaint.setColor(Color.YELLOW);
+		noOfLivesTextPaint.setColor(Color.CYAN);
 		noOfLivesTextPaint.setTextSize(36);
-		canvas.drawText(noOfLivesText, 40, 40, noOfLivesTextPaint); */
+		canvas.drawText(noOfLivesText, 5, 80, noOfLivesTextPaint);
 
 	}
 
@@ -259,13 +259,11 @@ public class TheGame extends GameThread {
 			// Call the method to reposition the paddle in the middle of the
 			// screen after scoring
 			repositionPaddleAfterScoring();
-			// Call the method to swap the smiley ball and the sad ball after
-			// scoring
-			// changeFacePositions();
-			if (mSmileyBallX >= 0 - mSmileyBall.getWidth() / 2) {
+			// Call the method to move the smiley ball after scoring
+			if (mSmileyBallX >= 0 + mSmileyBall.getWidth() / 2 ) {
 				moveSmileyBallToLeft();
 			}
-			if (mSmileyBallY >= 0 - mSmileyBall.getHeight() / 2) {
+			if (mSmileyBallY >= 0 + mSmileyBall.getHeight() / 2) {
 				moveSmileyBallToTop();
 			}
 			// When score reaches 5, change the background to a space-themed
@@ -282,7 +280,7 @@ public class TheGame extends GameThread {
 				
 				levelNo = 2;
 			}
-			// When score reaches 10, change the background to a sky-themed
+			// When score reaches 10, change the background to a sparkler-themed
 			// background
 			if (getScore() == 10) {
 				super.mBackgroundImage = BitmapFactory.decodeResource(
@@ -296,6 +294,34 @@ public class TheGame extends GameThread {
 				
 				levelNo = 3;
 			}
+			// When score reaches 15, change the background to a snow-themed
+			// background
+			if (getScore() == 15) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
+						R.drawable.backgroundscoreplus30);
+
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Increase the speed of the ball
+				increaseBallSpeed();
+				
+				levelNo = 4;
+			}
+			// When score reaches 20, change the background to a sunset-themed
+			// background
+			if (getScore() == 20) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
+						R.drawable.backgroundscoreplus40);
+
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Increase the speed of the ball
+				increaseBallSpeed();
+				
+				levelNo = 5;
+			}
 		}
 
 		// Test for collisions between the moving ball and the sad ball
@@ -304,11 +330,40 @@ public class TheGame extends GameThread {
 			// Call the method to reposition the paddle in the middle of the
 			// screen after scoring
 			repositionPaddleAfterScoring();
+			// Call method to move the sad ball after scoring
 			if (mSadBallX <= mCanvasWidth - mSadBall.getWidth() / 2) {
 				moveSadBallToRight();
 			}
 			if (mSadBallY <= mCanvasHeight - mSadBall.getHeight() / 2) {
 				moveSadBallToBottom();
+			}
+			// When score drops to 19, change the background back to the
+			// snow-theme
+			if (getScore() == 19) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
+						R.drawable.backgroundscoreplus30);
+
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Decrease the speed of the ball
+				decreaseBallSpeed();
+				
+				levelNo = 4;
+			}
+			// When score drops to 14, change the background back to the
+			// sparkler-theme
+			if (getScore() == 14) {
+				super.mBackgroundImage = BitmapFactory.decodeResource(
+						super.mGameView.getContext().getResources(),
+						R.drawable.backgroundscoreplus20);
+
+				super.setSurfaceSize(mCanvasWidth, mCanvasHeight);
+				
+				//Decrease the speed of the ball
+				decreaseBallSpeed();
+				
+				levelNo = 3;
 			}
 			// When score drops to 9, change the background back to the
 			// space-theme
@@ -370,16 +425,19 @@ public class TheGame extends GameThread {
 		}
 
 		if (mBallY >= mCanvasHeight - mBall.getHeight() / 2 && mBallSpeedY > 0) {
+			//---------------------------------------HIT BOTTOM OF SCREEN----------------
+			//either bounce and lose a life, or lose the game
+			noOfLives = noOfLives - 1; //Lose a life
+			//NEED TO BOUNCE THE BALL UPWARDS AGAIN
+			mBallSpeedY = -mBallSpeedY;
 			
-			//noOfLives = noOfLives - 1; //Lose a life
-			//return;
 			// If the ball hits the bottom of the screen and number of lives is zero, it's "Game over"
-			//if (noOfLives <= 0)
-			//{
+			if (noOfLives <= 0)
+			{
 				// Play sound when game is lost
 				mLoseSound.start();
 				setState(GameThread.STATE_LOSE);
-			//}
+			}
 		}
 	}
 
@@ -426,16 +484,6 @@ public class TheGame extends GameThread {
 	// scores
 	private void repositionPaddleAfterScoring() {
 		mPaddleX = mCanvasWidth / 2;
-	}
-
-	protected void changeFacePositions() {
-		// Swaps the Smiley Ball with the Sad Ball
-		float tempX = mSmileyBallX;
-		float tempY = mSmileyBallY;
-		mSmileyBallX = mSadBallX;
-		mSmileyBallY = mSadBallY;
-		mSadBallX = tempX;
-		mSadBallY = tempY;
 	}
 
 	private void moveSadBallToRight() {

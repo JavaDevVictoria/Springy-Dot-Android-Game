@@ -24,11 +24,13 @@ public final class R {
         public static final int background=0x7f020000;
         public static final int backgroundscoreplus10=0x7f020001;
         public static final int backgroundscoreplus20=0x7f020002;
-        public static final int ic_launcher=0x7f020003;
-        public static final int sad_ball=0x7f020004;
-        public static final int small_red_ball=0x7f020005;
-        public static final int smiley_ball=0x7f020006;
-        public static final int yellow_ball=0x7f020007;
+        public static final int backgroundscoreplus30=0x7f020003;
+        public static final int backgroundscoreplus40=0x7f020004;
+        public static final int ic_launcher=0x7f020005;
+        public static final int sad_ball=0x7f020006;
+        public static final int small_red_ball=0x7f020007;
+        public static final int smiley_ball=0x7f020008;
+        public static final int yellow_ball=0x7f020009;
     }
     public static final class id {
         public static final int gameLayout=0x7f080001;
@@ -53,6 +55,7 @@ public final class R {
         public static final int menu_resume=0x7f06000a;
         public static final int menu_start=0x7f060008;
         public static final int menu_stop=0x7f060009;
+        public static final int menu_togglesound=0x7f06000c;
         public static final int message_stopped=0x7f06000b;
         public static final int mode_lose=0x7f060005;
         public static final int mode_pause=0x7f060004;

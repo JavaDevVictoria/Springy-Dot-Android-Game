@@ -13,5 +13,6 @@
     <string name="menu_stop">Stop</string>
     <string name="menu_resume">Resume</string>
     <string name="message_stopped">Stopped</string>
+    <string name="menu_togglesound">Toggle sound effects on or off</string>
 
 </resources>
