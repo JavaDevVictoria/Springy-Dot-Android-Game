@@ -8,6 +8,8 @@ How to install the game on your device
 
 This game is now available on the Google Play Store - <a href="https://play.google.com/store/apps/details?id=com.webalicioustech.moocgame">here is the direct link</a>.
 
+For those with Kindle Fire devices, the game is also available on the Amazon App Store <a href="http://www.amazon.co.uk/Webalicious-Tech-Springy-Dot/dp/B00JYF74IS/ref=sr_1_1?s=mobile-apps&ie=UTF8&qid=1398638074&sr=1-1&keywords=springy+dot">here</a>.
+
 Playing the game
 =================
 
